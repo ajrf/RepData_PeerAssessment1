@@ -13,7 +13,8 @@ of the [Peer Assessment Repository].
 
 We begin by loading knitr and setting the global options so that all R source code is visible, 
 results and messages are hidden and processing is cached: 
-```{r SetGlobalOptions, echo=TRUE, message=FALSE, results="hide", cache=TRUE}
+
+```r
 # Load the knitr package (if not available, installs it)
 if (!require(knitr)){
     install.packages("knitr");
@@ -30,7 +31,8 @@ opts_chunk$set(echo=TRUE, message=FALSE, results="hide", cache=TRUE,
 
 Downloads the data from the forked repository (if not available in the current directory) 
 and unzips it: 
-```{r GetData}
+
+```r
 if (!file.exists("activity.zip") && !file.exists("activity.csv")){
     # Load the RCurl package (if not available, installs it)
     if (!require(RCurl)){
@@ -52,7 +54,8 @@ if (!file.exists("activity.csv"))
 
 Load the data: 
 
-```{r LoadData}
+
+```r
 dataTable<-read.csv("activity.csv");
 ```
 
@@ -73,7 +76,8 @@ Following the assignment instructions, the analysis will be divided into four pa
 
 Calculates the total number of steps taken per day: 
 
-```{r TotalStepsPerDay}
+
+```r
 totalStepsPerDay<-tapply(dataTable$steps, dataTable$date, 
                          function(x) { 
                              ## In order to distinguish a day in which all values are NAs 
@@ -89,28 +93,43 @@ totalStepsPerDay<-tapply(dataTable$steps, dataTable$date,
 
 Makes a histogram of the total number of steps taken each day: 
 
-```{r TotalStepsPerDayHist}
+
+```r
 # Do the histogram without days of only NAs (identified as -1)
 hist(totalStepsPerDay[totalStepsPerDay!=-1], breaks=10, main=NULL, xlab="Total Number of Steps per Day");
 ```
+
+<img src="figure/project1-TotalStepsPerDayHist-1.png" title="plot of chunk TotalStepsPerDayHist" alt="plot of chunk TotalStepsPerDayHist" style="display: block; margin: auto;" />
 
 
 Calculates the mean and median of the total number of steps taken per day, discarding the 
 missing values: 
 
-```{r MeanMedianTotalStepsPerDay, results="show"}
+
+```r
 # Calculate the mean and median values without days of only NAs (identified as -1)
 meanVal<-mean(totalStepsPerDay[totalStepsPerDay!=-1]);
 medianVal<-median(totalStepsPerDay[totalStepsPerDay!=-1]);
 meanVal
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 medianVal
+```
+
+```
+## [1] 10765
 ```
 
 Reporting the mean and median: 
 
-- the mean is **`r options(scipen=999); round(meanVal,2)`** (rounded to the second decimal 
+- the mean is **10766.19** (rounded to the second decimal 
 point);
-- the median is **`r medianVal`**.
+- the median is **10765**.
 
 
 
@@ -120,7 +139,8 @@ Generates the time series plot of the 5-minute interval casted as **Hour of the 
 since it is easier to read, versus the average number [across all days] of steps taken (y-axis), 
 discarding missing values: 
 
-```{r AvgStepsPerTimeSlot}
+
+```r
 # Calculate average number of steps for each 5-minute interval, discarding missing values
 avgStepsPerTimeSlot<-tapply(dataTable$steps, dataTable$interval, function(x) mean(x,na.rm=TRUE));
 ## Do the time series plot with Hour of the Day, instead of the simple 5-minute interval, in 
@@ -130,36 +150,65 @@ plot(c(0:287)*5/60+2.5/60, as.vector(avgStepsPerTimeSlot), xaxt="n", type="l",
 axis(1, at=seq(0,24,by=4), labels=seq(0,24,by=4));
 ```
 
+<img src="figure/project1-AvgStepsPerTimeSlot-1.png" title="plot of chunk AvgStepsPerTimeSlot" alt="plot of chunk AvgStepsPerTimeSlot" style="display: block; margin: auto;" />
+
 
 Determines which 5-minute interval contains the maximum number of steps (averaged across all 
 days): 
 
-```{r MaxAvgStepsPerTimeSlot, results="show"}
+
+```r
 # Determine the 5-minute interval that contains the maximum number of (average) steps
 maxAvgStepsTimeSlot<-which(avgStepsPerTimeSlot==max(avgStepsPerTimeSlot));
 # Convert the 'maximum' 5-minute interval to Hour and Minute
 hMax<-floor((maxAvgStepsTimeSlot-1)*5/60);
 mMax<-((maxAvgStepsTimeSlot-1)*5)%%60;
 maxAvgStepsTimeSlot
+```
+
+```
+## 835 
+## 104
+```
+
+```r
 hMax
+```
+
+```
+## 835 
+##   8
+```
+
+```r
 mMax
 ```
 
-The 5-minute interval with the highest number of average steps is the **`r maxAvgStepsTimeSlot`th** 
-(or, equivalently, the interval **`r names(maxAvgStepsTimeSlot)`** according to the notation used for 
+```
+## 835 
+##  35
+```
+
+The 5-minute interval with the highest number of average steps is the **104th** 
+(or, equivalently, the interval **835** according to the notation used for 
 the 'interval' column in the original dataset), which corresponds to the Hour of the Day interval: 
-**`r hMax`:`r mMax` to `r hMax`:`r mMax+5`**. 
+**8:35 to 8:40**. 
 
 
 
 ### Imputing missing values
 
-```{r GetNumNAs, results="show"}
+
+```r
 numNAs<-sum(is.na(dataTable$steps));
 numNAs
 ```
 
-The total number of missing values (NAs) is **`r numNAs`**. 
+```
+## [1] 2304
+```
+
+The total number of missing values (NAs) is **2304**. 
 
 Concerning the strategy for filling in the NAs, we chose to generate their values according 
 to a normal distribution with mean and standard-deviation given by the mean and standard-deviation 
@@ -168,7 +217,8 @@ values and set negative values to 0.
 
 Creates the new dataset with the missing data filled in as described: 
 
-```{r DataFilledNAs}
+
+```r
 # Calculate the standard-deviation values of the original dataset, without missing values
 stdStepsPerTimeSlot<-tapply(dataTable$steps, dataTable$interval, function(x) sd(x,na.rm=TRUE));
 
@@ -197,25 +247,40 @@ rm(dataTableNAs);
 Does a histogram of the total number of steps taken each day with the filled in missing 
 values: 
 
-```{r TotalStepsPerDayFilledNAsHist}
+
+```r
 # Calculate total number of steps per day with the new dataset
 totalStepsPerDayFilledNAs<-tapply(dataTableFilledNAs$steps,dataTableFilledNAs$date,sum);
 # Do the histogram
 hist(totalStepsPerDayFilledNAs, breaks=10, main=NULL, xlab="Total Number of Steps per Day");
 ```
 
+<img src="figure/project1-TotalStepsPerDayFilledNAsHist-1.png" title="plot of chunk TotalStepsPerDayFilledNAsHist" alt="plot of chunk TotalStepsPerDayFilledNAsHist" style="display: block; margin: auto;" />
+
 Calculates the mean and median values: 
 
-```{r MeanMedianTotalStepsPerDayFilledNAs, results="show"}
+
+```r
 # Calculate the mean and median values of the total steps per day in the new dataset 
 meanValFilledNAs<-mean(totalStepsPerDayFilledNAs);
 medianValFilledNAs<-median(totalStepsPerDayFilledNAs);
 meanValFilledNAs
+```
+
+```
+## [1] 11425.79
+```
+
+```r
 medianValFilledNAs
 ```
 
-The mean and median of the dataset with filled NAs is **`r options(scipen=999); round(meanValFilledNAs,2)`** 
-(rounded to the second decimal point) and **`r medianValFilledNAs`**, respectively. We see that 
+```
+## [1] 11458
+```
+
+The mean and median of the dataset with filled NAs is **11425.79** 
+(rounded to the second decimal point) and **11458**, respectively. We see that 
 imputing missing values according to the above strategy tends to shift the values upwards, a 
 result that can be traced back to the fact that the standard deviation values are typically 
 large. Indeed, as one decreases the standard deviation values assigned to the normal distribution, 
@@ -230,7 +295,8 @@ original dataset.
 Creates a new factor variable that identifies whether a given date is a weekday day (factor 
 value "weekday") or a weekend day (factor value "weekend"): 
 
-```{r DayTypeFactorVariable}
+
+```r
 # Get the day of the week values of the 'date' column
 dateWeekdays<-weekdays(as.POSIXlt(dataTableFilledNAs$date));
 # Categorise the day of the week values according to weekday or weekend
@@ -254,7 +320,8 @@ rm(dateDayType);
 Calculates the average number (across all days of the same day-type [weekday day or 
 weekend day]) of steps taken for each 5-minute interval: 
 
-```{r AvgStepsPerTimeSlotDayType}
+
+```r
 # Calculate the average steps for each 5-minute interval, averaged across weekday days
 avgStepsPerTimeSlotWeekday<-tapply(dataTableFilledNAs[dataTableFilledNAs$dayType=="weekday",]$steps,
                                    dataTableFilledNAs[dataTableFilledNAs$dayType=="weekday",]$interval,mean);
@@ -273,7 +340,8 @@ Makes a panel plot using the lattice plot system, showing the time series of the
 interval, casted as Hour of Day (x-axis), versus the average number (across all weekday 
 days or weekend days) of steps taken (y-axis): 
 
-```{r AvgStepsPerTimeSlotDayTypeLattice}
+
+```r
 # Load the reshape2 package (if not available, installs it)
 if (!require(reshape2)){
     install.packages("reshape2");
@@ -301,6 +369,8 @@ xyplot(value ~ variable | dayType, avgStepsPerTimeByDayType, layout=c(1,2),
        xaxt="n", scales=list(x=list(at=seq(0,24, 3), 
                                     labels=seq(0,24, 3))));
 ```
+
+<img src="figure/project1-AvgStepsPerTimeSlotDayTypeLattice-1.png" title="plot of chunk AvgStepsPerTimeSlotDayTypeLattice" alt="plot of chunk AvgStepsPerTimeSlotDayTypeLattice" style="display: block; margin: auto;" />
 
 
 
